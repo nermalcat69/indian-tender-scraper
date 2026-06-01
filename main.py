@@ -27,9 +27,7 @@ def parse_tenders(html, site_name, base_url):
 
     tenders = []
 
-    rows = table.find_all("tr")
-
-    for row in rows:
+    for row in table.find_all("tr"):
         cols = row.find_all("td")
         if len(cols) < 4:
             continue
@@ -95,11 +93,11 @@ def main():
     all_tenders = []
     for site in SITES:
         print(f"Fetching from {site['name']}...")
-        BASE_URL = site['url']
-        URL = site['url'] + ('/nicgep/app' if not site['url'].endswith('/nicgep/app') else '')
+        base_url = site['url']
+        url = base_url if base_url.endswith('/nicgep/app') else base_url + '/nicgep/app'
         try:
-            html = fetch_html(URL)
-            tenders = parse_tenders(html, site['name'], BASE_URL)
+            html = fetch_html(url)
+            tenders = parse_tenders(html, site['name'], base_url)
             all_tenders.extend(tenders)
         except Exception as e:
             print(f"Error fetching from {site['name']}: {e}")

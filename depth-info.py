@@ -14,7 +14,6 @@ HEADERS = {
     "Accept-Language": "en-US,en;q=0.9"
 }
 
-# Ensure PDF folder exists
 os.makedirs("pdfs", exist_ok=True)
 
 
@@ -49,36 +48,26 @@ def parse_details(html, url, row):
     soup = BeautifulSoup(html, "html.parser")
 
     data = {}
-
-    # Basic fields
     data["organisation"] = extract_detail(soup, "Organisation Chain")
     data["tender_id"] = extract_detail(soup, "Tender ID")
     data["tender_type"] = extract_detail(soup, "Tender Type")
-
-    # Work details
     data["title"] = extract_detail(soup, "Title")
     data["description"] = extract_detail(soup, "Work Description")
     data["value"] = extract_detail(soup, "Tender Value")
     data["location"] = extract_detail(soup, "Location")
-
-    # Dates
     data["published_date"] = extract_detail(soup, "Published Date")
     data["bid_opening_date"] = extract_detail(soup, "Bid Opening Date")
     data["bid_submission_end"] = extract_detail(soup, "Bid Submission End Date")
 
-    # Try downloading PDFs (best-effort)
     pdf_files = []
     ref_no = row.get("reference_no", "unknown")
 
-    doc_tables = soup.find_all("table", {"class": "list_table"})
-
-    for table in doc_tables:
+    for table in soup.find_all("table", {"class": "list_table"}):
         for a in table.find_all("a", href=True):
             link = a["href"]
 
             if "DirectLink" in link:
                 full_url = urljoin(url, link)
-
                 filename = f"{ref_no}_{len(pdf_files)+1}.pdf"
                 filepath = os.path.join("pdfs", filename)
 
@@ -141,11 +130,10 @@ def main():
                 continue
 
             details = parse_details(html, url, row)
-
             combined = {**row, **details}
             results.append(combined)
 
-            time.sleep(2)  # rate limit
+            time.sleep(2)
 
     if results:
         file_exists = os.path.exists(OUTPUT_CSV)
